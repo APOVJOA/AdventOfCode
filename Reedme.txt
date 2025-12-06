@@ -1,0 +1,41 @@
+Para la entraga del advent of code se ha decidido entregar los siguientes problemas para su evaluación:
+ -Problema DIA 4
+
+
+
+
+Memoria Dia 4:
+Hemos elegido este problema del Advent of Code porque su interpretación mediante grafos es bastante inmediata. 
+En este reto, cada casilla del mapa que representa un rollo de papel puede interpretarse como un nodo, y las casillas 
+adyacentes (arriba, abajo, izquierda y derecha) actúan como aristas entre esos nodos. De esta forma, el mapa se 
+transforma de manera natural en un grafo no ponderado, y recorrerlo para encontrar caminos o distancias es muy directo 
+con las técnicas que hemos visto en clase.
+
+Para la implementación, lo primero que hicimos fue reutilizar parte del código de prácticas. En concreto, la clase Node, la estructura List(ListLinked) y 
+a partir de ahí construimos la clase Grapho. Esto nos permitió representar el mapa como un grafo sin tener que reescribir 
+toda la infraestructura de nodos y listas enlazadas.
+
+Una vez construido el grafo, hemos dividido la solución en dos módulos principales: Part 1 y Part 2.
+
+Part 1:
+En este módulo cargamos el mapa original tal como aparece en el fichero de entrada. Creamos un nodo para cada casilla transitable y 
+añadimos aristas entre casillas adyacentes. Una vez construido el grafo, aplicamos una búsqueda BFS desde el nodo de inicio (el S del mapa) 
+hasta encontrar el nodo final (el E del mapa). BFS nos devuelve la distancia mínima, ya que el grafo no tiene pesos y todas las aristas equivalen 
+a un movimiento de coste 1. El resultado de Part 1 es la longitud mínima del camino que une S con E siguiendo las reglas del problema.
+
+Part 2:
+En este módulo repetimos el proceso, pero añadiendo la particularidad que pide la segunda parte del reto. 
+Según el enunciado, se permiten "deslizamientos" adicionales o movimientos especiales que hacen que ciertas 
+casillas puedan conectarse entre sí de forma distinta al mapa original. Para resolverlo, lo que hacemos es modificar la construcción del 
+grafo: además de las aristas normales, añadimos las conexiones extras permitidas por las reglas de Part 2. El resto del proceso es el mismo: 
+aplicamos BFS desde el punto de inicio y obtenemos la distancia mínima teniendo en cuenta estas nuevas posibilidades. Este enfoque funciona 
+porque BFS sigue siendo correcto siempre que todas las aristas tengan el mismo coste.
+
+En cuanto a alternativas, podrían haberse usado otras técnicas como programación dinámica (si el problema fuera optimizar un valor acumulado o contar caminos), 
+divide y vencerás (si el mapa se pudiera separar en regiones aisladas), hashing (para gestionar la lista de visitados más eficientemente) o estructuras 
+basadas en árboles binarios (si necesitáramos mantener los nodos ordenados), aunque ninguna de ellas encajaba de forma tan natural como el enfoque con grafos.
+
+Creemos que el uso de grafos encaja muy bien con este problema y hace que la solución sea bastante intuitiva. Nos ha servido para repasar las estructuras 
+de datos de las prácticas y ver cómo aplicarlas en un caso real. También nos ha ayudado a entender mejor por qué BFS es tan útil en grafos no ponderados y 
+cómo modelar correctamente un mapa como si fuese una red de nodos. Además, separar la solución en Part 1 y Part 2 nos ha ayudado a ver cómo pequeños 
+cambios en el modelado del grafo pueden cambiar completamente el comportamiento del algoritmo.
