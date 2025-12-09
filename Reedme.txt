@@ -5,40 +5,25 @@ Para la entraga del advent of code se ha decidido entregar los siguientes proble
 
 
 --------------------------------Memoria Dia 4 (códigodia4.cpp):--------------------------------------------------------
-Hemos elegido este problema del Advent of Code porque su interpretación mediante grafos es bastante inmediata. 
-En este reto, cada casilla del mapa que representa un rollo de papel puede interpretarse como un nodo, y las casillas 
-adyacentes (arriba, abajo, izquierda y derecha) actúan como aristas entre esos nodos. De esta forma, el mapa se 
-transforma de manera natural en un grafo no ponderado, y recorrerlo para encontrar caminos o distancias es muy directo 
-con las técnicas que hemos visto en clase.
 
-Para la implementación, lo primero que hicimos fue reutilizar parte del código de prácticas. En concreto, la clase Node, la estructura List(ListLinked) y 
-a partir de ahí construimos la clase Grapho. Esto nos permitió representar el mapa como un grafo sin tener que reescribir 
-toda la infraestructura de nodos y listas enlazadas.
+En este problema del Advent of Code hemos trabajado con un mapa formado por rollos de papel representados con el carácter '@'. Cada uno de estos rollos puede interpretarse como un nodo, y dos rollos están conectados si están en alguna de las ocho posiciones adyacentes (horizontal, vertical o diagonal). Por tanto, el mapa puede modelarse como un grafo no ponderado donde cada vértice conoce a los rollos que tiene cerca. Este enfoque encaja muy bien con los contenidos vistos en clase y permite resolver el problema de forma estructurada.
 
-El programa empieza leyendo el archivo puzzle4.txt, que contiene el mapa del reto. Cada línea del fichero representa una fila del mapa, y cada carácter de esa línea es una casilla que puede ser transitable, una pared o un punto especial como S (inicio) o E (final). A partir de esta lectura, generamos una matriz en memoria que luego convertimos en un grafo.
+Para la implementación hemos reutilizado parte del código de prácticas: la clase Node, la estructura ListLinked y la clase Graph construida sobre listas de adyacencia. Gracias a estas estructuras hemos podido representar el mapa como un grafo sin utilizar estructuras de la STL, cumpliendo así con las restricciones de la asignatura y aprovechando el trabajo desarrollado previamente.
 
-Una vez construido el grafo, hemos dividido la solución en dos módulos principales: Part 1 y Part 2.
+El programa comienza leyendo el archivo puzzle.txt, que contiene el mapa original del reto. Cada línea representa una fila y cada posición con '@' se convierte en un vértice del grafo. A cada rollo se le asigna un índice y después se recorren sus ocho posiciones vecinas; si alguna de ellas contiene otro '@', se añade una arista entre los dos nodos usando Graph::addEdge. De esta forma, cada vértice queda asociado a la lista de todos sus vecinos directos.
+
+Una vez construido el grafo, la solución se divide en dos partes: Part 1 y Part 2.
 
 Part 1:
-En este módulo cargamos el mapa original tal como aparece en el fichero de entrada. Creamos un nodo para cada casilla transitable y 
-añadimos aristas entre casillas adyacentes. Una vez construido el grafo, aplicamos una búsqueda BFS desde el nodo de inicio (el S del mapa) 
-hasta encontrar el nodo final (el E del mapa). BFS nos devuelve la distancia mínima, ya que el grafo no tiene pesos y todas las aristas equivalen 
-a un movimiento de coste 1. El resultado de Part 1 es la longitud mínima del camino que une S con E siguiendo las reglas del problema.
+En la primera parte se trata de determinar cuántos rollos son accesibles por un montacargas. El enunciado indica que un rollo es accesible si tiene menos de cuatro vecinos adyacentes. Gracias al grafo construido, comprobar esto es tan simple como consultar el tamaño de la lista neighbors(v) de cada nodo. El programa recorre todos los vértices y cuenta cuántos tienen un grado estrictamente menor que cuatro. Este recuento es el resultado de la Part 1.
 
 Part 2:
-En este módulo repetimos el proceso, pero añadiendo la particularidad que pide la segunda parte del reto. 
-Según el enunciado, se permiten "deslizamientos" adicionales o movimientos especiales que hacen que ciertas 
-casillas puedan conectarse entre sí de forma distinta al mapa original. Para resolverlo, lo que hacemos es modificar la construcción del 
-grafo: además de las aristas normales, añadimos las conexiones extras permitidas por las reglas de Part 2. El resto del proceso es el mismo: 
-aplicamos BFS desde el punto de inicio y obtenemos la distancia mínima teniendo en cuenta estas nuevas posibilidades. Este enfoque funciona 
-porque BFS sigue siendo correcto siempre que todas las aristas tengan el mismo coste.
+En la segunda parte hay que simular un proceso de eliminación de rollos. Si un rollo es accesible (tiene menos de cuatro vecinos), puede eliminarse. Al eliminarlo, sus vecinos pierden un adyacente y puede que pasen a ser accesibles a su vez. Por tanto, el proceso debe repetirse hasta que ya no quede ningún rollo con menos de cuatro vecinos.
 
-En cuanto a alternativas, podrían haberse usado otras técnicas como programación dinámica (si el problema fuera optimizar un valor acumulado o contar caminos), 
-divide y vencerás (si el mapa se pudiera separar en regiones aisladas), hashing (para gestionar la lista de visitados más eficientemente) o estructuras 
-basadas en árboles binarios (si necesitáramos mantener los nodos ordenados), aunque ninguna de ellas encajaba de forma tan natural como el enfoque con grafos.
+Para simular este comportamiento se utiliza una cola implementada también con ListLinked. Primero se añaden a la cola todos los nodos cuyo grado inicial es menor que cuatro. Después se extrae un nodo, se marca como eliminado y se reduce en uno el grado de todos sus vecinos. Si alguno de ellos pasa a tener un grado menor que cuatro, se vuelve accesible y se añade a la cola. El proceso continúa hasta que la cola queda vacía. La cantidad total de nodos eliminados durante la simulación es el resultado de la Part 2.
 
-Creemos que el uso de grafos encaja muy bien con este problema y hace que la solución sea bastante intuitiva. Nos ha servido para repasar las estructuras 
-de datos de las prácticas y ver cómo aplicarlas en un caso real. También nos ha ayudado a entender mejor por qué BFS es tan útil en grafos no ponderados y 
-cómo modelar correctamente un mapa como si fuese una red de nodos. Además, separar la solución en Part 1 y Part 2 nos ha ayudado a ver cómo pequeños 
+Este enfoque funciona bien porque el problema se reduce a gestionar los grados de los nodos del grafo y actualizar sus valores a medida que se van eliminando vértices. No es necesario ejecutar BFS tradicional ni calcular rutas, ya que el reto no trata sobre encontrar caminos sino sobre determinar accesibilidad local y cómo esta cambia dinámicamente al modificar el grafo.
 
-cambios en el modelado del grafo pueden cambiar completamente el comportamiento del algoritmo.
+En cuanto a alternativas, podrían haberse utilizado otras estructuras o representaciones, como vectores dinámicos o colas de la STL, pero el objetivo principal era aplicar las estructuras construidas en las prácticas. Tampoco era necesario emplear algoritmos de caminos mínimos, programación dinámica o estructuras basadas en árboles, ya que el problema se resolvía de forma directa gestionando las listas de adyacencia.
+
+En conclusión, este problema es una buena oportunidad para aplicar de manera práctica la representación de grafos mediante listas enlazadas, entender el concepto de grado de un nodo y ver cómo un pequeño cambio en la estructura (eliminación de vértices) puede modificar completamente el comportamiento del sistema. Separar la solución en Part 1 y Part 2 también ayuda a comprender cómo diferentes condiciones sobre el mismo grafo pueden abordarse de forma modular cambiando únicamente la lógica que actúa sobre él.
