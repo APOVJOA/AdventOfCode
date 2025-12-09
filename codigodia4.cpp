@@ -4,9 +4,6 @@
 #include <fstream>
 using namespace std;
 
-/* ============================================================
- *  Node & ListLinked (TUS CLASES)
- * ============================================================ */
 template <typename T>
 class Node {
 public:
@@ -119,9 +116,6 @@ public:
     int size() override { return n; }
 };
 
-/* ============================================================
- *  Graph (TUS CLASES)
- * ============================================================ */
 class Graph {
 private:
     int nVertices;
@@ -147,9 +141,7 @@ public:
     int size() const { return nVertices; }
 };
 
-/* ============================================================
- *  MAP -> GRAPH
- * ============================================================ */
+
 Graph* buildGraph(const vector<string>& grid, vector<pair<int,int>>& posMap) {
     int R = grid.size(), C = grid[0].size();
 
@@ -162,7 +154,7 @@ Graph* buildGraph(const vector<string>& grid, vector<pair<int,int>>& posMap) {
 
     Graph* G = new Graph(posMap.size());
 
-    // Mapa inverso
+
     vector<vector<int>> id(R, vector<int>(C, -1));
     for(int i = 0; i < (int)posMap.size(); i++)
         id[posMap[i].first][posMap[i].second] = i;
@@ -188,9 +180,7 @@ Graph* buildGraph(const vector<string>& grid, vector<pair<int,int>>& posMap) {
     return G;
 }
 
-/* ============================================================
- *  PART 1 USANDO GRAPH
- * ============================================================ */
+/* PART 1 USANDO GRAPH */
 int part1(Graph* G) {
     int acc = 0;
 
@@ -201,9 +191,7 @@ int part1(Graph* G) {
     return acc;
 }
 
-/* ============================================================
- *  PART 2 USANDO GRAPH + BFS
- * ============================================================ */
+/*PART 2 USANDO GRAPH + BFS */
 int part2(Graph* G) {
     int N = G->size();
     vector<bool> removed(N, false);
@@ -245,9 +233,6 @@ int part2(Graph* G) {
     return total;
 }
 
-/* ============================================================
- *  MAIN
- * ============================================================ */
 int main() {
     vector<string> grid;
     string line;
@@ -273,4 +258,5 @@ int main() {
     delete G;
     return 0;
 }
+
 
