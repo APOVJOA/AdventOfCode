@@ -252,7 +252,7 @@ int main() {
     vector<string> grid;
     string line;
 
-    ifstream fin("puzzle.txt");
+    ifstream fin("rompecabezas4.txt");
     if(!fin){
         cerr << "No se pudo abrir puzzle.txt\n";
         return 1;
@@ -273,3 +273,4 @@ int main() {
     delete G;
     return 0;
 }
+
