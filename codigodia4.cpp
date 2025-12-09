@@ -1,10 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <fstream>  
+#include <fstream>
 using namespace std;
 
-
+/* ============================================================
+ *  Node & ListLinked (TUS CLASES)
+ * ============================================================ */
 template <typename T>
 class Node {
 public:
@@ -13,13 +15,7 @@ public:
 
     Node(const T& data, Node<T>* next = nullptr)
         : data(data), next(next) {}
-
-    friend ostream& operator<<(ostream& out, const Node<T>& node) {
-        out << node.data;
-        return out;
-    }
 };
-
 
 template <typename T>
 class List {
@@ -34,7 +30,6 @@ public:
     virtual int size() = 0;
 };
 
-
 template <typename T>
 class ListLinked : public List<T> {
 private:
@@ -42,11 +37,7 @@ private:
     int n;
 
 public:
-    ListLinked() {
-        first = nullptr;
-        n = 0;
-    }
-
+    ListLinked() : first(nullptr), n(0) {}
     ~ListLinked() {
         Node<T>* aux;
         while (first != nullptr) {
@@ -72,13 +63,8 @@ public:
         n++;
     }
 
-    void append(T e) override {
-        insert(n, e);
-    }
-
-    void prepend(T e) override {
-        insert(0, e);
-    }
+    void append(T e) override { insert(n, e); }
+    void prepend(T e) override { insert(0, e); }
 
     T remove(int pos) override {
         if (pos < 0 || pos >= n)
@@ -90,7 +76,8 @@ public:
             eliminado = borrar->data;
             first = first->next;
             delete borrar;
-        } else {
+        }
+        else {
             Node<T>* actual = first;
             for (int i = 0; i < pos - 1; i++)
                 actual = actual->next;
@@ -130,31 +117,18 @@ public:
 
     bool empty() override { return n == 0; }
     int size() override { return n; }
-
-    T operator[](int pos) { return get(pos); }
-
-    friend ostream& operator<<(ostream& out, const ListLinked<T>& list) {
-        Node<T>* actual = list.first;
-        out << "[";
-        while (actual != nullptr) {
-            out << actual->data;
-            if (actual->next != nullptr) out << ", ";
-            actual = actual->next;
-        }
-        out << "]";
-        return out;
-    }
 };
 
-
+/* ============================================================
+ *  Graph (TUS CLASES)
+ * ============================================================ */
 class Graph {
 private:
     int nVertices;
-    ListLinked<int>* adj; // array de listas enlazadas
+    ListLinked<int>* adj;
 
 public:
-    Graph(int n) {
-        nVertices = n;
+    Graph(int n) : nVertices(n) {
         adj = new ListLinked<int>[n];
     }
 
@@ -162,91 +136,140 @@ public:
         delete[] adj;
     }
 
-    void addEdge(int origen, int destino) {
-        adj[origen].append(destino);
+    void addEdge(int u, int v) {
+        adj[u].append(v);
     }
 
     ListLinked<int>& neighbors(int v) {
         return adj[v];
     }
+
+    int size() const { return nVertices; }
 };
 
-
-
-const int dx[8] = {-1,-1,-1, 0,0, 1,1,1};
-const int dy[8] = {-1, 0, 1,-1,1,-1,0,1};
-
-bool valid(int x, int y, int R, int C) {
-    return x>=0 && y>=0 && x<R && y<C;
-}
-
-int countNeighbors(const vector<string>& grid, int r, int c) {
-    int cnt=0;
-    for(int k=0;k<8;k++){
-        int nr=r+dx[k], nc=c+dy[k];
-        if(valid(nr,nc,grid.size(),grid[0].size()) && grid[nr][nc]=='@')
-            cnt++;
-    }
-    return cnt;
-}
-
-int part1(const vector<string>& grid) {
+/* ============================================================
+ *  MAP -> GRAPH
+ * ============================================================ */
+Graph* buildGraph(const vector<string>& grid, vector<pair<int,int>>& posMap) {
     int R = grid.size(), C = grid[0].size();
-    int acc=0;
-    for(int r=0;r<R;r++){
-        for(int c=0;c<C;c++){
-            if(grid[r][c]=='@' && countNeighbors(grid,r,c)<4)
-                acc++;
+
+    // Asignar ID a cada '@'
+    posMap.clear();
+    for(int r = 0; r < R; r++)
+        for(int c = 0; c < C; c++)
+            if(grid[r][c] == '@')
+                posMap.push_back({r, c});
+
+    Graph* G = new Graph(posMap.size());
+
+    // Mapa inverso
+    vector<vector<int>> id(R, vector<int>(C, -1));
+    for(int i = 0; i < (int)posMap.size(); i++)
+        id[posMap[i].first][posMap[i].second] = i;
+
+    // 8 direcciones
+    int dx[8]={-1,-1,-1,0,0,1,1,1};
+    int dy[8]={-1,0,1,-1,1,-1,0,1};
+
+    // Construir adyacencias
+    for(int i = 0; i < (int)posMap.size(); i++) {
+        int r = posMap[i].first;
+        int c = posMap[i].second;
+
+        for(int k=0;k<8;k++){
+            int nr = r + dx[k], nc = c + dy[k];
+            if(nr>=0 && nc>=0 && nr<R && nc<C && grid[nr][nc]=='@') {
+                int j = id[nr][nc];
+                G->addEdge(i, j);
+            }
         }
+    }
+
+    return G;
+}
+
+/* ============================================================
+ *  PART 1 USANDO GRAPH
+ * ============================================================ */
+int part1(Graph* G) {
+    int acc = 0;
+
+    for(int v = 0; v < G->size(); v++) {
+        if(G->neighbors(v).size() < 4)
+            acc++;
     }
     return acc;
 }
 
-int part2(vector<string> grid) {
-    int R = grid.size(), C = grid[0].size();
-    int totalRemoved=0;
+/* ============================================================
+ *  PART 2 USANDO GRAPH + BFS
+ * ============================================================ */
+int part2(Graph* G) {
+    int N = G->size();
+    vector<bool> removed(N, false);
+    vector<int> deg(N);
 
-    while(true){
-        vector<pair<int,int>> removable;
+    // grados iniciales
+    for(int i=0;i<N;i++)
+        deg[i] = G->neighbors(i).size();
 
-        for(int r=0;r<R;r++){
-            for(int c=0;c<C;c++){
-                if(grid[r][c]=='@' && countNeighbors(grid,r,c)<4)
-                    removable.push_back({r,c});
+    ListLinked<int> queue;
+
+    // inicializar cola
+    for(int i=0;i<N;i++)
+        if(deg[i] < 4)
+            queue.append(i);
+
+    int total = 0;
+
+    while(!queue.empty()) {
+        int v = queue.get(0);
+        queue.remove(0);
+
+        if(removed[v]) continue;
+        removed[v] = true;
+        total++;
+
+        // actualizar vecinos
+        ListLinked<int>& neigh = G->neighbors(v);
+        for(int i=0;i<neigh.size();i++){
+            int u = neigh.get(i);
+            if(!removed[u]) {
+                deg[u]--;
+                if(deg[u] < 4)
+                    queue.append(u);
             }
         }
-
-        if(removable.empty())
-            break;
-
-        totalRemoved += removable.size();
-        for(auto &p : removable)
-            grid[p.first][p.second]='.';
     }
 
-    return totalRemoved;
+    return total;
 }
 
-
-
+/* ============================================================
+ *  MAIN
+ * ============================================================ */
 int main() {
     vector<string> grid;
     string line;
 
     ifstream fin("puzzle.txt");
-    if (!fin) {
-        cerr << "Error: No se pudo abrir puzzle.txt\n";
+    if(!fin){
+        cerr << "No se pudo abrir puzzle.txt\n";
         return 1;
     }
 
-    while (getline(fin, line)) {
-        if (!line.empty())
+    while(getline(fin, line))
+        if(!line.empty())
             grid.push_back(line);
-    }
+
     fin.close();
 
-    cout << "Part 1: " << part1(grid) << endl;
-    cout << "Part 2: " << part2(grid) << endl;
+    vector<pair<int,int>> posMap;
+    Graph* G = buildGraph(grid, posMap);
 
+    cout << "Part 1: " << part1(G) << endl;
+    cout << "Part 2: " << part2(G) << endl;
+
+    delete G;
     return 0;
 }
